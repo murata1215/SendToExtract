@@ -56,10 +56,24 @@ SendToExtract.exe                               使い方を表示
 
 | 項目 | 技術 |
 |------|------|
-| フレームワーク | .NET 8 |
+| フレームワーク | .NET 8 (net8.0-windows) |
 | UI | WinForms |
-| アーカイブ処理 | SharpCompress |
+| アーカイブ処理 | SharpCompress 0.49.1 |
+| エンコーディング | System.Text.Encoding.CodePages (CP932) |
 | 配布形態 | self-contained single-file exe |
+
+## プロジェクト構成
+
+```
+src/
+├── Program.cs            エントリポイント、引数解析、Mutex/Pipe 多重起動集約
+├── ArchiveHandler.cs     SharpCompress ラッパ、形式判定、CP932、パスワード
+├── ExtractorService.cs   展開キュー制御、衝突ポリシー、平坦化、ログ
+├── ProgressForm.cs       WinForms 進捗 UI
+├── SendToInstaller.cs    「送る」ショートカット作成/削除
+├── Settings.cs           settings.json 読み書き
+└── SendToExtract.csproj  プロジェクト定義
+```
 
 ## ライセンス
 
