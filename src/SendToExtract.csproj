@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- WinForms アプリケーションとして出力 -->
+    <OutputType>WinExe</OutputType>
+    <!-- .NET 8 をターゲット（Windows専用） -->
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <!-- WinForms を有効化 -->
+    <UseWindowsForms>true</UseWindowsForms>
+    <!-- Null許容参照型を有効化 -->
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- アセンブリ情報 -->
+    <RootNamespace>SendToExtract</RootNamespace>
+    <AssemblyName>SendToExtract</AssemblyName>
+    <!-- アプリケーションアイコン（将来用） -->
+    <!-- <ApplicationIcon>app.ico</ApplicationIcon> -->
+
+    <!-- === 単一ファイル公開設定 === -->
+    <!-- self-contained: ランタイム不要の単一exeを生成 -->
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <!-- ネイティブライブラリも単一ファイルに含める -->
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <!-- 単一ファイル内の圧縮を有効化（exe サイズ削減） -->
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <!-- デフォルトの公開ターゲット -->
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- SharpCompress: 純C#実装のアーカイブライブラリ（zip, tar, 7z, rar 等対応） -->
+    <PackageReference Include="SharpCompress" Version="0.49.1" />
+    <!-- CodePages: .NET Core で CP932（Shift_JIS）を使用するために必要 -->
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="8.0.0" />
+  </ItemGroup>
+
+</Project>

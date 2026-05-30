@@ -1,0 +1,28 @@
+# .NET build output
+bin/
+obj/
+
+# IDE
+.vs/
+*.user
+*.suo
+
+# NuGet
+*.nupkg
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# DevRelay internal
+.devrelay/
+.devrelay-files/
+.devrelay-output/
+
+# Claude
+.claude/
+
+# Logs
+*.log
+SendToExtract_log_*.txt
