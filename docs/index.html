@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SendToExtract - Windows アーカイブ一括展開ツール</title>
+<link rel="icon" href="favicon.ico">
+<meta name="description" content="Windowsの「送る」メニューからアーカイブを一括展開。zip, tar.gz, 7z, rar対応。インストール不要の単一exe。">
+<meta property="og:title" content="SendToExtract - Windows アーカイブ一括展開ツール">
+<meta property="og:description" content="右クリック→送る→一括展開。zip, tar.gz, 7z, rar対応。">
+<meta property="og:type" content="website">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+    color: #1a1a1a;
+    line-height: 1.7;
+    background: #fff;
+  }
+  a { color: #2563eb; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* Hero */
+  .hero {
+    text-align: center;
+    padding: 80px 24px 60px;
+    background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 100%);
+  }
+  .hero-icon { width: 96px; height: 96px; margin-bottom: 20px; }
+  .hero h1 { font-size: 2.4rem; font-weight: 800; margin-bottom: 8px; }
+  .hero .catch { font-size: 1.2rem; color: #475569; margin-bottom: 6px; }
+  .hero .sub { font-size: 1rem; color: #64748b; margin-bottom: 32px; }
+  .hero .cta {
+    display: inline-block;
+    background: #2563eb;
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 700;
+    padding: 14px 36px;
+    border-radius: 8px;
+    transition: background 0.2s;
+  }
+  .hero .cta:hover { background: #1d4ed8; text-decoration: none; }
+  .hero .cta-sub { font-size: 0.85rem; color: #94a3b8; margin-top: 10px; }
+
+  /* Section */
+  .section { max-width: 900px; margin: 0 auto; padding: 64px 24px; }
+  .section h2 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 32px;
+    text-align: center;
+    color: #0f172a;
+  }
+  .section h2::after {
+    content: '';
+    display: block;
+    width: 48px;
+    height: 3px;
+    background: #2563eb;
+    margin: 12px auto 0;
+    border-radius: 2px;
+  }
+
+  /* Features */
+  .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 28px; }
+  .feature {
+    text-align: center;
+    padding: 24px 16px;
+    border-radius: 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+  }
+  .feature .emoji { font-size: 2.2rem; margin-bottom: 12px; }
+  .feature h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 8px; }
+  .feature p { font-size: 0.9rem; color: #475569; }
+
+  /* Steps */
+  .steps { counter-reset: step; }
+  .step {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+    margin-bottom: 40px;
+    padding: 24px;
+    background: #f8fafc;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+  }
+  .step-text { flex: 1; }
+  .step-text h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #0f172a;
+  }
+  .step-text h3::before {
+    counter-increment: step;
+    content: 'Step ' counter(step);
+    display: inline-block;
+    background: #2563eb;
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 2px 10px;
+    border-radius: 10px;
+    margin-right: 10px;
+    vertical-align: middle;
+  }
+  .step-text p { font-size: 0.9rem; color: #475569; }
+  .step-img {
+    flex-shrink: 0;
+    max-width: 260px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  @media (max-width: 640px) {
+    .step { flex-direction: column; }
+    .step-img { max-width: 100%; }
+  }
+
+  /* Formats */
+  .formats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+  }
+  .format-item {
+    padding: 12px 16px;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    font-size: 0.95rem;
+  }
+  .format-item strong { color: #0f172a; }
+  .format-item span { color: #64748b; font-size: 0.85rem; }
+
+  /* CTA bottom */
+  .cta-section {
+    text-align: center;
+    padding: 64px 24px;
+    background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 100%);
+  }
+  .cta-section h2 { font-size: 1.4rem; margin-bottom: 20px; }
+  .cta-section h2::after { display: none; }
+  .cta-section .cta {
+    display: inline-block;
+    background: #2563eb;
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 700;
+    padding: 14px 36px;
+    border-radius: 8px;
+    transition: background 0.2s;
+  }
+  .cta-section .cta:hover { background: #1d4ed8; text-decoration: none; }
+  .cta-section .info { font-size: 0.85rem; color: #94a3b8; margin-top: 12px; }
+
+  /* Settings */
+  .settings-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  .settings-table th, .settings-table td {
+    text-align: left;
+    padding: 10px 14px;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  .settings-table th { background: #f1f5f9; font-weight: 600; }
+  .settings-table code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.85rem; }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    padding: 32px 24px;
+    color: #94a3b8;
+    font-size: 0.85rem;
+    border-top: 1px solid #e2e8f0;
+  }
+  footer a { color: #64748b; }
+</style>
+</head>
+<body>
+
+<!-- Hero -->
+<section class="hero">
+  <img src="images/icon.png" alt="SendToExtract" class="hero-icon">
+  <h1>SendToExtract</h1>
+  <p class="catch">右クリック &rarr; 送る &rarr; 一括展開</p>
+  <p class="sub">Windows の「送る」メニューからアーカイブをまとめて展開するツール</p>
+  <a href="https://github.com/murata1215/SendToExtract/releases/latest/download/SendToExtract-v1.0.2-win-x64.zip" class="cta">
+    無料ダウンロード
+  </a>
+  <p class="cta-sub">Windows 10 / 11 (64bit) | v1.0.2 | 約65MB | .NET不要</p>
+</section>
+
+<!-- Features -->
+<section class="section">
+  <h2>特徴</h2>
+  <div class="features">
+    <div class="feature">
+      <div class="emoji">&#x1F4E6;</div>
+      <h3>多形式対応</h3>
+      <p>zip, tar.gz, 7z, rar など主要なアーカイブ形式をすべてサポート</p>
+    </div>
+    <div class="feature">
+      <div class="emoji">&#x1F5B1;</div>
+      <h3>かんたん操作</h3>
+      <p>右クリック→「送る」で一括展開。ファイル選択画面で確認してから展開</p>
+    </div>
+    <div class="feature">
+      <div class="emoji">&#x1F1EF;&#x1F1F5;</div>
+      <h3>日本語対応</h3>
+      <p>CP932（Shift_JIS）のファイル名も文字化けなし</p>
+    </div>
+    <div class="feature">
+      <div class="emoji">&#x26A1;</div>
+      <h3>インストール不要</h3>
+      <p>exe 1つで動作。.NET ランタイムは不要。好きな場所に置くだけ</p>
+    </div>
+  </div>
+</section>
+
+<!-- How to use -->
+<section class="section" style="background: #fafbfc;">
+  <h2>使い方</h2>
+  <div class="steps">
+    <div class="step">
+      <div class="step-text">
+        <h3>ダウンロード &amp; セットアップ</h3>
+        <p>zip を解凍して <code>SendToExtract.exe</code> を好きな場所に配置。<br>
+        ダブルクリックして「送る」に登録ボタンを押すだけ。</p>
+      </div>
+      <img src="images/setup.png" alt="セットアップ画面" class="step-img">
+    </div>
+    <div class="step">
+      <div class="step-text">
+        <h3>右クリック →「送る」</h3>
+        <p>展開したいフォルダやファイルを右クリックし、<br>
+        「送る」メニューから「SendToExtract」を選択。</p>
+      </div>
+      <img src="images/sendto-menu.png" alt="送るメニュー" class="step-img">
+    </div>
+    <div class="step">
+      <div class="step-text">
+        <h3>ファイルを選択</h3>
+        <p>フォルダ内のアーカイブが一覧表示されます。<br>
+        展開するファイルをチェックして「展開」ボタン。</p>
+      </div>
+      <img src="images/selection.png" alt="ファイル選択画面" class="step-img">
+    </div>
+    <div class="step">
+      <div class="step-text">
+        <h3>展開完了</h3>
+        <p>進捗バーで展開状況を確認。<br>
+        完了後は「フォルダを開く」で展開先を確認できます。</p>
+      </div>
+      <img src="images/complete.png" alt="展開完了画面" class="step-img">
+    </div>
+  </div>
+</section>
+
+<!-- Formats -->
+<section class="section">
+  <h2>対応形式</h2>
+  <div class="formats-grid">
+    <div class="format-item"><strong>ZIP</strong> <span>.zip</span></div>
+    <div class="format-item"><strong>TAR</strong> <span>.tar</span></div>
+    <div class="format-item"><strong>TAR+GZip</strong> <span>.tar.gz .tgz</span></div>
+    <div class="format-item"><strong>TAR+BZip2</strong> <span>.tar.bz2 .tbz2</span></div>
+    <div class="format-item"><strong>TAR+XZ</strong> <span>.tar.xz .txz</span></div>
+    <div class="format-item"><strong>7-Zip</strong> <span>.7z</span></div>
+    <div class="format-item"><strong>RAR</strong> <span>.rar</span></div>
+    <div class="format-item"><strong>GZip</strong> <span>.gz</span></div>
+    <div class="format-item"><strong>BZip2</strong> <span>.bz2</span></div>
+  </div>
+</section>
+
+<!-- Settings -->
+<section class="section" style="background: #fafbfc;">
+  <h2>設定</h2>
+  <p style="text-align: center; color: #64748b; margin-bottom: 24px; font-size: 0.9rem;">
+    <code>%APPDATA%\SendToExtract\settings.json</code> で設定を変更できます
+  </p>
+  <table class="settings-table">
+    <thead>
+      <tr><th>設定項目</th><th>初期値</th><th>説明</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>collisionPolicy</code></td><td>Rename</td><td>展開先が既にある場合の処理（Skip / Rename / Overwrite）</td></tr>
+      <tr><td><code>flattenSingleRoot</code></td><td>true</td><td>二重ラップ平坦化（name/name/... &rarr; name/...）</td></tr>
+      <tr><td><code>recurseSubfolders</code></td><td>false</td><td>サブフォルダも再帰的に探索</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- CTA bottom -->
+<section class="cta-section">
+  <h2>今すぐ使ってみる</h2>
+  <a href="https://github.com/murata1215/SendToExtract/releases/latest/download/SendToExtract-v1.0.2-win-x64.zip" class="cta">
+    無料ダウンロード（v1.0.2）
+  </a>
+  <p class="info">Windows 10 / 11 (64bit) | 約65MB | .NETランタイム不要</p>
+  <p class="info" style="margin-top: 8px;">
+    <a href="https://github.com/murata1215/SendToExtract">GitHub でソースコードを見る</a>
+  </p>
+</section>
+
+<!-- Footer -->
+<footer>
+  <p>&copy; 2026 SendToExtract | <a href="https://github.com/murata1215/SendToExtract">GitHub</a> | MIT License</p>
+</footer>
+
+</body>
+</html>
