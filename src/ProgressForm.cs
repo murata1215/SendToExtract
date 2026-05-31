@@ -69,7 +69,7 @@ public class ProgressForm : Form
         _targetFolder = targetFolder;
 
         // === フォーム基本設定 ===
-        Text = "展開中 - SendToExtract";
+        Text = $"展開中 - SendToExtract v{AppInfo.Version}";
         Size = new Size(620, 480);
         MinimumSize = new Size(500, 400);
         StartPosition = FormStartPosition.CenterScreen;
@@ -311,14 +311,14 @@ public class ProgressForm : Form
         {
             // 全成功 → 閉じるボタンで終了（自動クローズしない）
             _overallLabel.Text = $"完了: {totalCount} 個のアーカイブを展開しました";
-            Text = "完了 - SendToExtract";
+            Text = $"完了 - SendToExtract v{AppInfo.Version}";
             ShowCompletionButtons(hasFailures: false);
         }
         else
         {
             // 失敗あり
             _overallLabel.Text = $"完了: 成功 {totalCount - failureCount} / 失敗 {failureCount}";
-            Text = "完了（失敗あり） - SendToExtract";
+            Text = $"完了（失敗あり） - SendToExtract v{AppInfo.Version}";
             ShowCompletionButtons(hasFailures: true);
         }
     }

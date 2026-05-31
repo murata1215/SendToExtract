@@ -1,7 +1,18 @@
 using System.IO.Pipes;
+using System.Reflection;
 using System.Text;
 
 namespace SendToExtract;
+
+/// <summary>
+/// アプリケーション情報を提供するヘルパークラス。
+/// </summary>
+public static class AppInfo
+{
+    /// <summary>アセンブリから取得したバージョン文字列（例: "1.0.2"）</summary>
+    public static string Version { get; } =
+        Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "0.0.0";
+}
 
 /// <summary>
 /// SendToExtract アプリケーションのエントリポイント。

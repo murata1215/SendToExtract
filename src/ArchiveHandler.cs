@@ -275,11 +275,12 @@ public class ArchiveHandler
             foreach (var entry in entries2)
             {
                 ct.ThrowIfCancellationRequested();
-                entry.WriteToDirectory(outputDir, new ExtractionOptions
+                var destPath = SanitizeEntryPath(entry.Key, outputDir);
+                if (destPath != null)
                 {
-                    ExtractFullPath = true,
-                    Overwrite = true
-                });
+                    using var entryStream = entry.OpenEntryStream();
+                    WriteStreamToFile(entryStream, destPath);
+                }
                 processedEntries++;
                 progress?.Report(new ExtractProgress(processedEntries, totalEntries, entry.Key ?? ""));
             }
@@ -290,11 +291,13 @@ public class ArchiveHandler
         {
             ct.ThrowIfCancellationRequested();
 
-            entry.WriteToDirectory(outputDir, new ExtractionOptions
+            // エントリパスをサニタイズして安全な出力先を生成
+            var destPath = SanitizeEntryPath(entry.Key, outputDir);
+            if (destPath != null)
             {
-                ExtractFullPath = true,
-                Overwrite = true
-            });
+                using var entryStream = entry.OpenEntryStream();
+                WriteStreamToFile(entryStream, destPath);
+            }
 
             processedEntries++;
             progress?.Report(new ExtractProgress(processedEntries, totalEntries, entry.Key ?? ""));
@@ -367,16 +370,66 @@ public class ArchiveHandler
 
             if (!reader.Entry.IsDirectory)
             {
-                reader.WriteEntryToDirectory(outputDir, new ExtractionOptions
+                // エントリパスをサニタイズして安全な出力先を生成
+                // tar の絶対パス（/var/log/...）や ../ を含むパスに対応
+                var destPath = SanitizeEntryPath(reader.Entry.Key, outputDir);
+                if (destPath != null)
                 {
-                    ExtractFullPath = true,
-                    Overwrite = true
-                });
+                    using var entryStream = reader.OpenEntryStream();
+                    WriteStreamToFile(entryStream, destPath);
+                }
 
                 processed++;
                 progress?.Report(new ExtractProgress(processed, totalEntries, reader.Entry.Key ?? ""));
             }
         }
+    }
+
+    /// <summary>
+    /// エントリのパスをサニタイズして安全な出力先パスを生成する。
+    /// tar 等で絶対パス（/var/log/...）や相対パス（../...）が含まれる場合に
+    /// 展開先ディレクトリの外に書き出されるのを防ぐ（Zip Slip 対策）。
+    /// </summary>
+    /// <param name="entryKey">アーカイブエントリのキー（パス）</param>
+    /// <param name="outputDir">展開先ディレクトリ</param>
+    /// <returns>安全な出力先フルパス。無効な場合は null。</returns>
+    private static string? SanitizeEntryPath(string? entryKey, string outputDir)
+    {
+        if (string.IsNullOrWhiteSpace(entryKey)) return null;
+
+        // 先頭の / \ を除去（絶対パス → 相対パスに変換）
+        var sanitized = entryKey.TrimStart('/', '\\');
+
+        // ".." を含むパスコンポーネントを除去
+        var parts = sanitized.Split('/', '\\');
+        var safeParts = parts.Where(p => p != ".." && !string.IsNullOrEmpty(p)).ToArray();
+        if (safeParts.Length == 0) return null;
+
+        var relativePath = Path.Combine(safeParts);
+        var fullPath = Path.GetFullPath(Path.Combine(outputDir, relativePath));
+
+        // 最終確認: 出力先ディレクトリ配下であることを検証
+        var normalizedOutputDir = Path.GetFullPath(outputDir) + Path.DirectorySeparatorChar;
+        if (!fullPath.StartsWith(normalizedOutputDir, StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        return fullPath;
+    }
+
+    /// <summary>
+    /// ストリームからファイルに書き出す。親ディレクトリが無ければ作成する。
+    /// </summary>
+    /// <param name="source">書き出し元ストリーム</param>
+    /// <param name="destPath">書き出し先ファイルパス</param>
+    private static void WriteStreamToFile(Stream source, string destPath)
+    {
+        var dir = Path.GetDirectoryName(destPath);
+        if (dir != null) Directory.CreateDirectory(dir);
+
+        using var destStream = File.Create(destPath);
+        source.CopyTo(destStream);
     }
 
     /// <summary>

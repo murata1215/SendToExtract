@@ -24,7 +24,7 @@ public class SetupForm : Form
     public SetupForm()
     {
         // === フォーム基本設定 ===
-        Text = "SendToExtract";
+        Text = $"SendToExtract v{AppInfo.Version}";
         Size = new Size(420, 280);
         FormBorderStyle = FormBorderStyle.FixedDialog;
         StartPosition = FormStartPosition.CenterScreen;

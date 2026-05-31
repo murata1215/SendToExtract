@@ -51,7 +51,7 @@ public class SelectionForm : Form
         _folderPath = folderPath;
 
         // === フォーム基本設定 ===
-        Text = "SendToExtract - ファイル選択";
+        Text = $"SendToExtract v{AppInfo.Version} - ファイル選択";
         Size = new Size(580, 440);
         MinimumSize = new Size(420, 320);
         StartPosition = FormStartPosition.CenterScreen;

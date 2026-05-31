@@ -13,6 +13,8 @@
     <!-- アセンブリ情報 -->
     <RootNamespace>SendToExtract</RootNamespace>
     <AssemblyName>SendToExtract</AssemblyName>
+    <!-- バージョン情報 -->
+    <Version>1.0.2</Version>
     <!-- アプリケーションアイコン -->
     <ApplicationIcon>app.ico</ApplicationIcon>
 
