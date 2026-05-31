@@ -38,12 +38,14 @@ public class ArchiveHandler
 
     /// <summary>
     /// ストリーム逐次読み（ReaderFactory）を使用すべき形式。
-    /// 7z と rar はソリッドアーカイブの場合、ランダムアクセスが不可能なため
-    /// Archive API ではなく Reader API を使用する。
+    /// - 7z / rar: ソリッドアーカイブはランダムアクセス不可
+    /// - tar.gz 等: gzip/bzip2/xz 圧縮された tar はストリーム逐次読みが必要
+    ///   （Archive API では "Failed to read TAR header" エラーになる）
     /// </summary>
     private static readonly HashSet<string> StreamOnlyExtensions = new(StringComparer.OrdinalIgnoreCase)
     {
-        ".7z", ".rar"
+        ".7z", ".rar",
+        ".tar.gz", ".tgz", ".tar.bz2", ".tbz2", ".tar.xz", ".txz"
     };
 
     /// <summary>
