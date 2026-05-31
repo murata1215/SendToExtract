@@ -9,210 +9,530 @@
 <meta property="og:title" content="SendToExtract - Windows アーカイブ一括展開ツール">
 <meta property="og:description" content="右クリック→送る→一括展開。zip, tar.gz, 7z, rar対応。">
 <meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
-    color: #1a1a1a;
-    line-height: 1.7;
-    background: #fff;
-  }
-  a { color: #2563eb; text-decoration: none; }
-  a:hover { text-decoration: underline; }
 
-  /* Hero */
+  :root {
+    --primary: #3b82f6;
+    --primary-dark: #2563eb;
+    --primary-light: #dbeafe;
+    --accent: #0ea5e9;
+    --text: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+    --bg: #ffffff;
+    --bg-subtle: #f8fafc;
+    --bg-muted: #f1f5f9;
+    --border: #e2e8f0;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+    --shadow: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -2px rgba(0,0,0,0.05);
+    --shadow-lg: 0 10px 25px -3px rgba(0,0,0,0.08), 0 4px 6px -4px rgba(0,0,0,0.04);
+    --shadow-xl: 0 20px 50px -12px rgba(0,0,0,0.12);
+    --radius: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Inter', 'Noto Sans JP', system-ui, -apple-system, sans-serif;
+    color: var(--text);
+    line-height: 1.8;
+    background: var(--bg);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: var(--primary); text-decoration: none; transition: color 0.2s; }
+  a:hover { color: var(--primary-dark); }
+  code { font-family: 'Cascadia Code', 'Consolas', monospace; }
+
+  .container { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+  /* ========== NAV ========== */
+  nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(226,232,240,0.6);
+    padding: 0 24px;
+  }
+  .nav-inner {
+    max-width: 1080px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+  }
+  .nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: var(--text);
+  }
+  .nav-brand img { width: 28px; height: 28px; }
+  .nav-links { display: flex; gap: 28px; align-items: center; }
+  .nav-links a { color: var(--text-secondary); font-size: 0.9rem; font-weight: 500; }
+  .nav-links a:hover { color: var(--primary); }
+  .nav-cta {
+    background: var(--primary);
+    color: #fff !important;
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+  }
+  .nav-cta:hover { background: var(--primary-dark); transform: translateY(-1px); }
+
+  @media (max-width: 640px) {
+    .nav-links a:not(.nav-cta) { display: none; }
+  }
+
+  /* ========== HERO ========== */
   .hero {
     text-align: center;
-    padding: 80px 24px 60px;
-    background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 100%);
+    padding: 140px 24px 100px;
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(59,130,246,0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 50%, rgba(14,165,233,0.06) 0%, transparent 50%),
+      linear-gradient(180deg, #f8faff 0%, #ffffff 100%);
+    position: relative;
+    overflow: hidden;
   }
-  .hero-icon { width: 96px; height: 96px; margin-bottom: 20px; }
-  .hero h1 { font-size: 2.4rem; font-weight: 800; margin-bottom: 8px; }
-  .hero .catch { font-size: 1.2rem; color: #475569; margin-bottom: 6px; }
-  .hero .sub { font-size: 1rem; color: #64748b; margin-bottom: 32px; }
-  .hero .cta {
-    display: inline-block;
-    background: #2563eb;
-    color: #fff;
-    font-size: 1.1rem;
-    font-weight: 700;
-    padding: 14px 36px;
-    border-radius: 8px;
-    transition: background 0.2s;
-  }
-  .hero .cta:hover { background: #1d4ed8; text-decoration: none; }
-  .hero .cta-sub { font-size: 0.85rem; color: #94a3b8; margin-top: 10px; }
-
-  /* Section */
-  .section { max-width: 900px; margin: 0 auto; padding: 64px 24px; }
-  .section h2 {
-    font-size: 1.6rem;
-    font-weight: 700;
-    margin-bottom: 32px;
-    text-align: center;
-    color: #0f172a;
-  }
-  .section h2::after {
+  .hero::before {
     content: '';
-    display: block;
-    width: 48px;
-    height: 3px;
-    background: #2563eb;
-    margin: 12px auto 0;
-    border-radius: 2px;
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at 30% 40%, rgba(59,130,246,0.04) 0%, transparent 40%);
+    animation: hero-float 20s ease-in-out infinite;
+  }
+  @keyframes hero-float {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(3%, 2%); }
+  }
+  .hero > * { position: relative; z-index: 1; }
+
+  .hero-icon {
+    width: 88px;
+    height: 88px;
+    margin-bottom: 28px;
+    filter: drop-shadow(0 8px 24px rgba(59,130,246,0.2));
+    animation: icon-bounce 3s ease-in-out infinite;
+  }
+  @keyframes icon-bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
   }
 
-  /* Features */
-  .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 28px; }
-  .feature {
-    text-align: center;
-    padding: 24px 16px;
-    border-radius: 12px;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
+  .hero h1 {
+    font-size: 3rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 12px;
+    background: linear-gradient(135deg, var(--text) 0%, #334155 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
-  .feature .emoji { font-size: 2.2rem; margin-bottom: 12px; }
-  .feature h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 8px; }
-  .feature p { font-size: 0.9rem; color: #475569; }
-
-  /* Steps */
-  .steps { counter-reset: step; }
-  .step {
-    display: flex;
-    gap: 24px;
-    align-items: flex-start;
+  .hero .catch {
+    font-size: 1.3rem;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+  .hero .sub {
+    font-size: 1.05rem;
+    color: var(--text-muted);
     margin-bottom: 40px;
-    padding: 24px;
-    background: #f8fafc;
-    border-radius: 12px;
-    border: 1px solid #e2e8f0;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
   }
-  .step-text { flex: 1; }
-  .step-text h3 {
+
+  .cta-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+    color: #fff;
     font-size: 1.1rem;
     font-weight: 700;
-    margin-bottom: 8px;
-    color: #0f172a;
+    padding: 16px 40px;
+    border-radius: var(--radius);
+    box-shadow: 0 4px 14px rgba(59,130,246,0.35);
+    transition: all 0.3s;
+    text-decoration: none;
   }
-  .step-text h3::before {
-    counter-increment: step;
-    content: 'Step ' counter(step);
-    display: inline-block;
-    background: #2563eb;
+  .cta-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(59,130,246,0.4);
     color: #fff;
-    font-size: 0.75rem;
-    font-weight: 700;
-    padding: 2px 10px;
-    border-radius: 10px;
-    margin-right: 10px;
+  }
+  .cta-btn svg { width: 20px; height: 20px; }
+
+  .hero .meta {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: 16px;
+  }
+  .hero .meta span {
+    display: inline-block;
+    margin: 0 6px;
+  }
+  .hero .meta span::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 50%;
+    margin-right: 12px;
     vertical-align: middle;
   }
-  .step-text p { font-size: 0.9rem; color: #475569; }
-  .step-img {
-    flex-shrink: 0;
-    max-width: 260px;
-    border-radius: 8px;
-    border: 1px solid #cbd5e1;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  .hero .meta span:first-child::before { display: none; }
+
+  /* ========== SECTION ========== */
+  .section {
+    padding: 100px 24px;
   }
-  @media (max-width: 640px) {
-    .step { flex-direction: column; }
-    .step-img { max-width: 100%; }
+  .section--alt {
+    background: var(--bg-subtle);
+  }
+  .section-header {
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto 56px;
+  }
+  .section-header .badge {
+    display: inline-block;
+    background: var(--primary-light);
+    color: var(--primary-dark);
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 4px 14px;
+    border-radius: 20px;
+    margin-bottom: 16px;
+    letter-spacing: 0.05em;
+  }
+  .section-header h2 {
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    margin-bottom: 12px;
+    color: var(--text);
+  }
+  .section-header p {
+    font-size: 1rem;
+    color: var(--text-secondary);
   }
 
-  /* Formats */
+  /* ========== FEATURES ========== */
+  .features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 24px;
+    max-width: 1080px;
+    margin: 0 auto;
+  }
+  .feature {
+    text-align: center;
+    padding: 36px 24px 32px;
+    border-radius: var(--radius-lg);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s ease;
+  }
+  .feature:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--primary-light);
+  }
+  .feature-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    font-size: 1.6rem;
+    margin-bottom: 18px;
+  }
+  .feature-icon--blue { background: #dbeafe; }
+  .feature-icon--cyan { background: #cffafe; }
+  .feature-icon--amber { background: #fef3c7; }
+  .feature-icon--green { background: #dcfce7; }
+  .feature h3 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .feature p {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+  }
+
+  /* ========== STEPS ========== */
+  .steps {
+    max-width: 900px;
+    margin: 0 auto;
+    counter-reset: step;
+  }
+  .step {
+    display: flex;
+    gap: 40px;
+    align-items: center;
+    margin-bottom: 48px;
+    padding: 32px;
+    background: var(--bg);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    transition: all 0.3s ease;
+  }
+  .step:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+  }
+  .step:nth-child(even) { flex-direction: row-reverse; }
+
+  .step-text { flex: 1; }
+  .step-number {
+    counter-increment: step;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 800;
+    border-radius: 50%;
+    margin-bottom: 12px;
+  }
+  .step-number::after { content: counter(step); }
+  .step-text h3 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+  .step-text p {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+  }
+  .step-img-wrap {
+    flex-shrink: 0;
+    max-width: 300px;
+  }
+  .step-img {
+    width: 100%;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border);
+    transition: transform 0.3s ease;
+  }
+  .step:hover .step-img { transform: scale(1.02); }
+
+  @media (max-width: 700px) {
+    .step, .step:nth-child(even) { flex-direction: column; }
+    .step-img-wrap { max-width: 100%; }
+  }
+
+  /* ========== FORMATS ========== */
   .formats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 16px;
+    max-width: 800px;
+    margin: 0 auto;
   }
   .format-item {
-    padding: 12px 16px;
-    background: #f8fafc;
-    border-radius: 8px;
-    border: 1px solid #e2e8f0;
-    font-size: 0.95rem;
-  }
-  .format-item strong { color: #0f172a; }
-  .format-item span { color: #64748b; font-size: 0.85rem; }
-
-  /* CTA bottom */
-  .cta-section {
+    padding: 16px 20px;
+    background: var(--bg);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
     text-align: center;
-    padding: 64px 24px;
-    background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 100%);
+    transition: all 0.2s;
   }
-  .cta-section h2 { font-size: 1.4rem; margin-bottom: 20px; }
-  .cta-section h2::after { display: none; }
-  .cta-section .cta {
-    display: inline-block;
-    background: #2563eb;
-    color: #fff;
-    font-size: 1.1rem;
+  .format-item:hover {
+    border-color: var(--primary-light);
+    box-shadow: var(--shadow);
+    transform: translateY(-2px);
+  }
+  .format-item strong {
+    display: block;
+    font-size: 0.95rem;
     font-weight: 700;
-    padding: 14px 36px;
-    border-radius: 8px;
-    transition: background 0.2s;
+    color: var(--text);
+    margin-bottom: 4px;
   }
-  .cta-section .cta:hover { background: #1d4ed8; text-decoration: none; }
-  .cta-section .info { font-size: 0.85rem; color: #94a3b8; margin-top: 12px; }
+  .format-item span {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-family: 'Cascadia Code', monospace;
+  }
 
-  /* Settings */
+  /* ========== SETTINGS ========== */
+  .settings-wrap {
+    max-width: 800px;
+    margin: 0 auto;
+    background: var(--bg);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
   .settings-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
   .settings-table th, .settings-table td {
     text-align: left;
-    padding: 10px 14px;
-    border-bottom: 1px solid #e2e8f0;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
   }
-  .settings-table th { background: #f1f5f9; font-weight: 600; }
-  .settings-table code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.85rem; }
+  .settings-table thead th {
+    background: var(--bg-muted);
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .settings-table tbody tr:last-child td { border-bottom: none; }
+  .settings-table code {
+    background: var(--bg-muted);
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    color: var(--primary-dark);
+  }
 
-  /* Footer */
+  /* ========== CTA BOTTOM ========== */
+  .cta-bottom {
+    text-align: center;
+    padding: 100px 24px;
+    background:
+      radial-gradient(ellipse at 50% 50%, rgba(59,130,246,0.06) 0%, transparent 60%),
+      linear-gradient(180deg, #ffffff 0%, #f8faff 100%);
+  }
+  .cta-bottom h2 {
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 12px;
+  }
+  .cta-bottom p {
+    color: var(--text-secondary);
+    margin-bottom: 32px;
+    font-size: 1.05rem;
+  }
+  .cta-bottom .meta {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: 16px;
+  }
+  .cta-bottom .github-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 20px;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+  .cta-bottom .github-link:hover { color: var(--primary); }
+  .cta-bottom .github-link svg { width: 18px; height: 18px; }
+
+  /* ========== FOOTER ========== */
   footer {
     text-align: center;
-    padding: 32px 24px;
-    color: #94a3b8;
+    padding: 40px 24px;
+    color: var(--text-muted);
     font-size: 0.85rem;
-    border-top: 1px solid #e2e8f0;
+    border-top: 1px solid var(--border);
+    background: var(--bg-subtle);
   }
-  footer a { color: #64748b; }
+  footer a { color: var(--text-secondary); font-weight: 500; }
+  footer a:hover { color: var(--primary); }
 </style>
 </head>
 <body>
+
+<!-- Nav -->
+<nav>
+  <div class="nav-inner">
+    <div class="nav-brand">
+      <img src="images/icon.png" alt="">
+      SendToExtract
+    </div>
+    <div class="nav-links">
+      <a href="#features">特徴</a>
+      <a href="#howto">使い方</a>
+      <a href="#formats">対応形式</a>
+      <a href="https://github.com/murata1215/SendToExtract/releases/latest/download/SendToExtract-v1.0.2-win-x64.zip" class="nav-cta">ダウンロード</a>
+    </div>
+  </div>
+</nav>
 
 <!-- Hero -->
 <section class="hero">
   <img src="images/icon.png" alt="SendToExtract" class="hero-icon">
   <h1>SendToExtract</h1>
   <p class="catch">右クリック &rarr; 送る &rarr; 一括展開</p>
-  <p class="sub">Windows の「送る」メニューからアーカイブをまとめて展開するツール</p>
-  <a href="https://github.com/murata1215/SendToExtract/releases/latest/download/SendToExtract-v1.0.2-win-x64.zip" class="cta">
+  <p class="sub">Windows の「送る」メニューからアーカイブをまとめて展開。面倒な解凍作業を一瞬で。</p>
+  <a href="https://github.com/murata1215/SendToExtract/releases/latest/download/SendToExtract-v1.0.2-win-x64.zip" class="cta-btn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
     無料ダウンロード
   </a>
-  <p class="cta-sub">Windows 10 / 11 (64bit) | v1.0.2 | 約65MB | .NET不要</p>
+  <p class="meta">
+    <span>Windows 10 / 11</span>
+    <span>v1.0.2</span>
+    <span>.NET 不要</span>
+    <span>MIT License</span>
+  </p>
 </section>
 
 <!-- Features -->
-<section class="section">
-  <h2>特徴</h2>
+<section class="section" id="features">
+  <div class="section-header">
+    <span class="badge">FEATURES</span>
+    <h2>シンプルで強力な機能</h2>
+    <p>exe ひとつで、あらゆるアーカイブをかんたんに展開</p>
+  </div>
   <div class="features">
     <div class="feature">
-      <div class="emoji">&#x1F4E6;</div>
+      <div class="feature-icon feature-icon--blue">&#x1F4E6;</div>
       <h3>多形式対応</h3>
-      <p>zip, tar.gz, 7z, rar など主要なアーカイブ形式をすべてサポート</p>
+      <p>zip, tar.gz, 7z, rar など主要な形式をすべてサポート</p>
     </div>
     <div class="feature">
-      <div class="emoji">&#x1F5B1;</div>
+      <div class="feature-icon feature-icon--cyan">&#x1F5B1;&#xFE0F;</div>
       <h3>かんたん操作</h3>
       <p>右クリック→「送る」で一括展開。ファイル選択画面で確認してから展開</p>
     </div>
     <div class="feature">
-      <div class="emoji">&#x1F1EF;&#x1F1F5;</div>
+      <div class="feature-icon feature-icon--amber">&#x1F1EF;&#x1F1F5;</div>
       <h3>日本語対応</h3>
       <p>CP932（Shift_JIS）のファイル名も文字化けなし</p>
     </div>
     <div class="feature">
-      <div class="emoji">&#x26A1;</div>
+      <div class="feature-icon feature-icon--green">&#x26A1;</div>
       <h3>インストール不要</h3>
       <p>exe 1つで動作。.NET ランタイムは不要。好きな場所に置くだけ</p>
     </div>
@@ -220,93 +540,115 @@
 </section>
 
 <!-- How to use -->
-<section class="section" style="background: #fafbfc;">
-  <h2>使い方</h2>
+<section class="section section--alt" id="howto">
+  <div class="section-header">
+    <span class="badge">HOW TO USE</span>
+    <h2>かんたん 4 ステップ</h2>
+    <p>ダウンロードから展開完了まで、わずか数クリック</p>
+  </div>
   <div class="steps">
     <div class="step">
       <div class="step-text">
+        <div class="step-number"></div>
         <h3>ダウンロード &amp; セットアップ</h3>
-        <p>zip を解凍して <code>SendToExtract.exe</code> を好きな場所に配置。<br>
-        ダブルクリックして「送る」に登録ボタンを押すだけ。</p>
+        <p>zip を解凍して <code>SendToExtract.exe</code> を好きな場所に配置。ダブルクリックして「送る」に登録ボタンを押すだけ。</p>
       </div>
-      <img src="images/setup.png" alt="セットアップ画面" class="step-img">
+      <div class="step-img-wrap">
+        <img src="images/setup.png" alt="セットアップ画面" class="step-img">
+      </div>
     </div>
     <div class="step">
       <div class="step-text">
-        <h3>右クリック →「送る」</h3>
-        <p>展開したいフォルダやファイルを右クリックし、<br>
-        「送る」メニューから「SendToExtract」を選択。</p>
+        <div class="step-number"></div>
+        <h3>右クリック &rarr;「送る」</h3>
+        <p>展開したいフォルダやファイルを右クリックし、「送る」メニューから「SendToExtract」を選択。</p>
       </div>
-      <img src="images/sendto-menu.png" alt="送るメニュー" class="step-img">
+      <div class="step-img-wrap">
+        <img src="images/sendto-menu.png" alt="送るメニュー" class="step-img">
+      </div>
     </div>
     <div class="step">
       <div class="step-text">
+        <div class="step-number"></div>
         <h3>ファイルを選択</h3>
-        <p>フォルダ内のアーカイブが一覧表示されます。<br>
-        展開するファイルをチェックして「展開」ボタン。</p>
+        <p>フォルダ内のアーカイブが一覧表示されます。展開するファイルをチェックして「展開」ボタン。</p>
       </div>
-      <img src="images/selection.png" alt="ファイル選択画面" class="step-img">
+      <div class="step-img-wrap">
+        <img src="images/selection.png" alt="ファイル選択画面" class="step-img">
+      </div>
     </div>
     <div class="step">
       <div class="step-text">
+        <div class="step-number"></div>
         <h3>展開完了</h3>
-        <p>進捗バーで展開状況を確認。<br>
-        完了後は「フォルダを開く」で展開先を確認できます。</p>
+        <p>進捗バーで展開状況をリアルタイム確認。完了後は「フォルダを開く」で展開先をすぐに確認できます。</p>
       </div>
-      <img src="images/complete.png" alt="展開完了画面" class="step-img">
+      <div class="step-img-wrap">
+        <img src="images/complete.png" alt="展開完了画面" class="step-img">
+      </div>
     </div>
   </div>
 </section>
 
 <!-- Formats -->
-<section class="section">
-  <h2>対応形式</h2>
+<section class="section" id="formats">
+  <div class="section-header">
+    <span class="badge">FORMATS</span>
+    <h2>対応形式</h2>
+    <p>主要なアーカイブ形式をすべてカバー</p>
+  </div>
   <div class="formats-grid">
-    <div class="format-item"><strong>ZIP</strong> <span>.zip</span></div>
-    <div class="format-item"><strong>TAR</strong> <span>.tar</span></div>
-    <div class="format-item"><strong>TAR+GZip</strong> <span>.tar.gz .tgz</span></div>
-    <div class="format-item"><strong>TAR+BZip2</strong> <span>.tar.bz2 .tbz2</span></div>
-    <div class="format-item"><strong>TAR+XZ</strong> <span>.tar.xz .txz</span></div>
-    <div class="format-item"><strong>7-Zip</strong> <span>.7z</span></div>
-    <div class="format-item"><strong>RAR</strong> <span>.rar</span></div>
-    <div class="format-item"><strong>GZip</strong> <span>.gz</span></div>
-    <div class="format-item"><strong>BZip2</strong> <span>.bz2</span></div>
+    <div class="format-item"><strong>ZIP</strong><span>.zip</span></div>
+    <div class="format-item"><strong>TAR</strong><span>.tar</span></div>
+    <div class="format-item"><strong>TAR+GZip</strong><span>.tar.gz .tgz</span></div>
+    <div class="format-item"><strong>TAR+BZip2</strong><span>.tar.bz2</span></div>
+    <div class="format-item"><strong>TAR+XZ</strong><span>.tar.xz</span></div>
+    <div class="format-item"><strong>7-Zip</strong><span>.7z</span></div>
+    <div class="format-item"><strong>RAR</strong><span>.rar</span></div>
+    <div class="format-item"><strong>GZip</strong><span>.gz</span></div>
+    <div class="format-item"><strong>BZip2</strong><span>.bz2</span></div>
   </div>
 </section>
 
 <!-- Settings -->
-<section class="section" style="background: #fafbfc;">
-  <h2>設定</h2>
-  <p style="text-align: center; color: #64748b; margin-bottom: 24px; font-size: 0.9rem;">
-    <code>%APPDATA%\SendToExtract\settings.json</code> で設定を変更できます
-  </p>
-  <table class="settings-table">
-    <thead>
-      <tr><th>設定項目</th><th>初期値</th><th>説明</th></tr>
-    </thead>
-    <tbody>
-      <tr><td><code>collisionPolicy</code></td><td>Rename</td><td>展開先が既にある場合の処理（Skip / Rename / Overwrite）</td></tr>
-      <tr><td><code>flattenSingleRoot</code></td><td>true</td><td>二重ラップ平坦化（name/name/... &rarr; name/...）</td></tr>
-      <tr><td><code>recurseSubfolders</code></td><td>false</td><td>サブフォルダも再帰的に探索</td></tr>
-    </tbody>
-  </table>
+<section class="section section--alt">
+  <div class="section-header">
+    <span class="badge">SETTINGS</span>
+    <h2>設定</h2>
+    <p><code>%APPDATA%\SendToExtract\settings.json</code> で変更可能</p>
+  </div>
+  <div class="settings-wrap">
+    <table class="settings-table">
+      <thead>
+        <tr><th>設定項目</th><th>初期値</th><th>説明</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>collisionPolicy</code></td><td>Rename</td><td>展開先が既にある場合の処理（Skip / Rename / Overwrite）</td></tr>
+        <tr><td><code>flattenSingleRoot</code></td><td>true</td><td>二重ラップ平坦化（name/name/... &rarr; name/...）</td></tr>
+        <tr><td><code>recurseSubfolders</code></td><td>false</td><td>サブフォルダも再帰的に探索</td></tr>
+      </tbody>
+    </table>
+  </div>
 </section>
 
 <!-- CTA bottom -->
-<section class="cta-section">
+<section class="cta-bottom">
   <h2>今すぐ使ってみる</h2>
-  <a href="https://github.com/murata1215/SendToExtract/releases/latest/download/SendToExtract-v1.0.2-win-x64.zip" class="cta">
+  <p>無料でダウンロード。レジストリ汚さず、アンインストールも削除するだけ。</p>
+  <a href="https://github.com/murata1215/SendToExtract/releases/latest/download/SendToExtract-v1.0.2-win-x64.zip" class="cta-btn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
     無料ダウンロード（v1.0.2）
   </a>
-  <p class="info">Windows 10 / 11 (64bit) | 約65MB | .NETランタイム不要</p>
-  <p class="info" style="margin-top: 8px;">
-    <a href="https://github.com/murata1215/SendToExtract">GitHub でソースコードを見る</a>
-  </p>
+  <p class="meta">Windows 10 / 11 (64bit) | 約65MB | .NET ランタイム不要</p>
+  <a href="https://github.com/murata1215/SendToExtract" class="github-link">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+    GitHub でソースコードを見る
+  </a>
 </section>
 
 <!-- Footer -->
 <footer>
-  <p>&copy; 2026 SendToExtract | <a href="https://github.com/murata1215/SendToExtract">GitHub</a> | MIT License</p>
+  <p>&copy; 2026 SendToExtract &nbsp;|&nbsp; <a href="https://github.com/murata1215/SendToExtract">GitHub</a> &nbsp;|&nbsp; MIT License</p>
 </footer>
 
 </body>
