@@ -66,6 +66,73 @@ public class ExtractorService
     public int FailureCount => _results.Count(r => !r.Success);
 
     /// <summary>
+    /// 指定されたパス群からアーカイブファイルを列挙する（キューには追加しない）。
+    /// SelectionForm でファイル一覧を表示するために使用する。
+    /// フォルダが渡された場合はその直下のアーカイブを列挙する。
+    /// ファイルが渡された場合は同じフォルダ内のアーカイブを列挙する。
+    /// </summary>
+    /// <param name="paths">コマンドライン引数で渡されたパス群</param>
+    /// <param name="settings">設定（対象拡張子・再帰探索の判定に使用）</param>
+    /// <returns>アーカイブファイルのフルパスリストと、対象フォルダパス</returns>
+    public static (List<string> archives, string? folderPath) ListArchives(
+        IEnumerable<string> paths, Settings settings)
+    {
+        var archives = new List<string>();
+        string? folderPath = null;
+
+        foreach (var path in paths)
+        {
+            if (Directory.Exists(path))
+            {
+                // フォルダが渡された場合: そのフォルダ内のアーカイブを列挙
+                folderPath ??= path;
+                var searchOption = settings.RecurseSubfolders
+                    ? SearchOption.AllDirectories
+                    : SearchOption.TopDirectoryOnly;
+                try
+                {
+                    foreach (var file in Directory.GetFiles(path, "*", searchOption))
+                    {
+                        if (ArchiveHandler.IsArchive(file, settings.Extensions))
+                        {
+                            archives.Add(file);
+                        }
+                    }
+                }
+                catch { }
+            }
+            else if (File.Exists(path))
+            {
+                // ファイルが渡された場合: そのファイルの親フォルダ内のアーカイブを列挙
+                var dir = Path.GetDirectoryName(path);
+                if (dir != null)
+                {
+                    folderPath ??= dir;
+                    var searchOption = settings.RecurseSubfolders
+                        ? SearchOption.AllDirectories
+                        : SearchOption.TopDirectoryOnly;
+                    try
+                    {
+                        foreach (var file in Directory.GetFiles(dir, "*", searchOption))
+                        {
+                            if (ArchiveHandler.IsArchive(file, settings.Extensions)
+                                && !archives.Contains(file))
+                            {
+                                archives.Add(file);
+                            }
+                        }
+                    }
+                    catch { }
+                }
+            }
+        }
+
+        // ファイル名順にソート
+        archives.Sort(StringComparer.OrdinalIgnoreCase);
+        return (archives, folderPath);
+    }
+
+    /// <summary>
     /// コマンドライン引数からファイル/フォルダを解析し、展開キューに追加する。
     /// フォルダが指定された場合はその直下（または再帰的に）アーカイブを列挙する。
     /// ファイルが指定された場合はそのまま追加する。

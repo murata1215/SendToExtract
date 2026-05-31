@@ -53,12 +53,6 @@ public class ProgressForm : Form
     /// <summary>アプリケーション設定</summary>
     private readonly Settings _settings;
 
-    /// <summary>自動クローズ用タイマー</summary>
-    private System.Windows.Forms.Timer? _autoCloseTimer;
-
-    /// <summary>自動クローズまでの残り秒数</summary>
-    private int _autoCloseRemaining;
-
     /// <summary>最初に渡されたフォルダパス（「フォルダを開く」用）</summary>
     private string? _targetFolder;
 
@@ -80,6 +74,7 @@ public class ProgressForm : Form
         MinimumSize = new Size(500, 400);
         StartPosition = FormStartPosition.CenterScreen;
         FormBorderStyle = FormBorderStyle.Sizable;
+        Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath);
 
         // === レイアウト構築 ===
 
@@ -314,55 +309,18 @@ public class ProgressForm : Form
 
         if (failureCount == 0)
         {
-            // 全成功
+            // 全成功 → 閉じるボタンで終了（自動クローズしない）
             _overallLabel.Text = $"完了: {totalCount} 個のアーカイブを展開しました";
             Text = "完了 - SendToExtract";
-
-            if (_settings.AutoCloseOnSuccess && totalCount > 0)
-            {
-                // 自動クローズ開始
-                StartAutoClose();
-            }
-            else
-            {
-                ShowCompletionButtons(hasFailures: false);
-            }
+            ShowCompletionButtons(hasFailures: false);
         }
         else
         {
-            // 失敗あり → ウィンドウを残す
+            // 失敗あり
             _overallLabel.Text = $"完了: 成功 {totalCount - failureCount} / 失敗 {failureCount}";
             Text = "完了（失敗あり） - SendToExtract";
             ShowCompletionButtons(hasFailures: true);
         }
-    }
-
-    /// <summary>
-    /// 自動クローズのカウントダウンを開始する。
-    /// タイトルバーに残り秒数を表示し、0になったらウィンドウを閉じる。
-    /// </summary>
-    private void StartAutoClose()
-    {
-        _autoCloseRemaining = _settings.AutoCloseDelaySec;
-        Text = $"完了 - {_autoCloseRemaining}秒後に閉じます - SendToExtract";
-
-        ShowCompletionButtons(hasFailures: false);
-
-        _autoCloseTimer = new System.Windows.Forms.Timer { Interval = 1000 };
-        _autoCloseTimer.Tick += (_, _) =>
-        {
-            _autoCloseRemaining--;
-            if (_autoCloseRemaining <= 0)
-            {
-                _autoCloseTimer.Stop();
-                Close();
-            }
-            else
-            {
-                Text = $"完了 - {_autoCloseRemaining}秒後に閉じます - SendToExtract";
-            }
-        };
-        _autoCloseTimer.Start();
     }
 
     /// <summary>
@@ -464,9 +422,6 @@ public class ProgressForm : Form
     /// </summary>
     protected override void OnFormClosing(FormClosingEventArgs e)
     {
-        _autoCloseTimer?.Stop();
-        _autoCloseTimer?.Dispose();
-
         if (!_cts.IsCancellationRequested)
         {
             _cts.Cancel();
@@ -490,9 +445,6 @@ public class ProgressForm : Form
         {
             return (string?)Invoke(() => ShowPasswordDialog(archiveName));
         }
-
-        // 自動クローズタイマーを一時停止（パスワード入力中に閉じないように）
-        _autoCloseTimer?.Stop();
 
         using var dialog = new Form
         {

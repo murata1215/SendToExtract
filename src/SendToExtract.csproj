@@ -13,8 +13,8 @@
     <!-- アセンブリ情報 -->
     <RootNamespace>SendToExtract</RootNamespace>
     <AssemblyName>SendToExtract</AssemblyName>
-    <!-- アプリケーションアイコン（将来用） -->
-    <!-- <ApplicationIcon>app.ico</ApplicationIcon> -->
+    <!-- アプリケーションアイコン -->
+    <ApplicationIcon>app.ico</ApplicationIcon>
 
     <!-- === 単一ファイル公開設定 === -->
     <!-- self-contained: ランタイム不要の単一exeを生成 -->

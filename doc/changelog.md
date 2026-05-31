@@ -1,5 +1,26 @@
 # Changelog
 
+## 2026-05-31: ファイル選択画面・UI改善・アイコン追加
+
+### ファイル選択画面（SelectionForm）
+- 「送る」後に即展開ではなく、フォルダ内のアーカイブ一覧を表示して選択してから展開するフローに変更
+- CheckedListBox でファイル名+サイズを表示、全選択/全解除ボタン付き
+- ExtractorService に `ListArchives` static メソッドを追加（キュー追加せず列挙のみ）
+
+### セットアップ画面（SetupForm）
+- exe ダブルクリック時に MessageBox → 専用ウィンドウに変更
+- 「送る」に登録 / 削除ボタン、登録状態表示（緑/オレンジ）
+- 登録済みなら登録ボタンをグレーアウト、未登録なら削除ボタンをグレーアウト
+
+### 自動クローズ廃止
+- 展開完了後、自動で閉じずに「閉じる」ボタン押下で終了するように変更
+- StartAutoClose / _autoCloseTimer 関連コードを削除
+
+### アプリケーションアイコン
+- app.ico を追加（256/48/32/16px の4サイズ内包）
+- csproj に `<ApplicationIcon>app.ico</ApplicationIcon>` を設定
+- 全フォーム（SelectionForm, ProgressForm, SetupForm）の左上にアイコンを表示
+
 ## 2026-05-31: 初版実装 + バグ修正
 
 ### 初版実装

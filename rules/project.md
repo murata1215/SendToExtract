@@ -17,6 +17,12 @@
 - 旧: `ArchiveFactory.Open` → 新: `ArchiveFactory.OpenArchive`
 - 旧: `ReaderFactory.Open` → 新: `ReaderFactory.OpenReader`
 
+## UIフロー
+- 「送る」→ SelectionForm（ファイル選択）→ ProgressForm（展開進捗）の2段階
+- 展開完了後は自動クローズしない（ユーザーが「閉じる」ボタンで終了）
+- exe ダブルクリック（引数なし）→ SetupForm（「送る」登録/削除画面）
+- 全フォームに `Icon.ExtractAssociatedIcon(Application.ExecutablePath)` でアイコン設定
+
 ## 展開ロジック
 - 展開先フォルダが既に存在する場合の衝突ポリシーは設定可能（デフォルト: Rename）
 - 展開失敗時は空の出力フォルダを自動削除する

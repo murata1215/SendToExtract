@@ -56,10 +56,10 @@ internal static class Program
             return;
         }
 
-        // 引数なし: 使い方ダイアログを表示
+        // 引数なし: セットアップ画面を表示
         if (args.Length == 0)
         {
-            ShowUsageDialog();
+            Application.Run(new SetupForm());
             return;
         }
 
@@ -128,65 +128,43 @@ internal static class Program
     }
 
     /// <summary>
-    /// 引数なしで起動された場合に表示する使い方ダイアログ。
-    /// インストール状態も表示する。
-    /// </summary>
-    private static void ShowUsageDialog()
-    {
-        var installed = SendToInstaller.IsInstalled();
-        var statusText = installed ? "✓ 「送る」メニューに登録済み" : "✗ 「送る」メニューに未登録";
-
-        var message =
-            $"SendToExtract - アーカイブ一括展開ツール\n\n" +
-            $"使い方:\n" +
-            $"  フォルダやアーカイブを右クリック →「送る」→「SendToExtract」\n\n" +
-            $"コマンドライン:\n" +
-            $"  SendToExtract.exe <フォルダ/ファイル> ...\n" +
-            $"  SendToExtract.exe --install     「送る」に登録\n" +
-            $"  SendToExtract.exe --uninstall   「送る」から削除\n\n" +
-            $"状態: {statusText}\n\n" +
-            $"対応形式: zip, tar, tar.gz, tgz, tar.bz2, gz, bz2, 7z, rar";
-
-        var result = MessageBox.Show(
-            message + "\n\n「送る」メニューに登録しますか？",
-            "SendToExtract",
-            installed ? MessageBoxButtons.OK : MessageBoxButtons.YesNo,
-            MessageBoxIcon.Information);
-
-        // 未登録で「はい」が選ばれた場合はインストール
-        if (!installed && result == DialogResult.Yes)
-        {
-            HandleInstall();
-        }
-    }
-
-    /// <summary>
     /// 先発プロセスとして展開処理を実行する。
-    /// Named Pipe サーバを起動し、後発プロセスからの引数を受け付ける。
-    /// ProgressForm を表示して展開を行う。
+    /// まず SelectionForm でファイル選択画面を表示し、
+    /// ユーザーが選択したファイルのみ ProgressForm で展開する。
     /// </summary>
     /// <param name="args">コマンドライン引数</param>
     private static void RunAsPrimary(string[] args)
     {
         var settings = Settings.Load();
 
-        // 展開対象の最初のフォルダパスを記憶（「フォルダを開く」用）
-        string? targetFolder = null;
-        foreach (var arg in args)
+        // 引数からフォルダ内のアーカイブを列挙（キューには追加しない）
+        var (archives, targetFolder) = ExtractorService.ListArchives(args, settings);
+
+        if (archives.Count == 0)
         {
-            if (Directory.Exists(arg))
-            {
-                targetFolder = arg;
-                break;
-            }
-            else if (File.Exists(arg))
-            {
-                targetFolder = Path.GetDirectoryName(arg);
-                break;
-            }
+            // 展開対象が見つからなかった場合
+            MessageBox.Show(
+                "展開対象のアーカイブが見つかりませんでした。\n\n" +
+                "対応形式: zip, tar, tar.gz, tgz, tar.bz2, gz, bz2, 7z, rar",
+                "SendToExtract",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Warning);
+            return;
         }
 
-        // ProgressForm を先に作成（パスワードコールバックに使うため）
+        // === ファイル選択画面を表示 ===
+        var selectionForm = new SelectionForm(archives, targetFolder);
+        Application.Run(selectionForm);
+
+        // ユーザーが選択せずに閉じた場合は終了
+        if (selectionForm.SelectedFiles == null || selectionForm.SelectedFiles.Count == 0)
+        {
+            return;
+        }
+
+        var selectedFiles = selectionForm.SelectedFiles;
+
+        // === 選択されたファイルで展開処理を開始 ===
         ProgressForm? form = null;
 
         // パスワードコールバック: UIスレッドでダイアログを表示
@@ -199,21 +177,9 @@ internal static class Program
             return null;
         }
 
-        // 展開サービスを作成し、引数からキューを構築
+        // 展開サービスを作成し、選択されたファイルのみキューに追加
         var service = new ExtractorService(settings, PasswordCallback);
-        service.AddPaths(args);
-
-        if (service.TotalCount == 0)
-        {
-            // 展開対象が見つからなかった場合
-            MessageBox.Show(
-                "展開対象のアーカイブが見つかりませんでした。\n\n" +
-                "対応形式: zip, tar, tar.gz, tgz, tar.bz2, gz, bz2, 7z, rar",
-                "SendToExtract",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Warning);
-            return;
-        }
+        service.AddPaths(selectedFiles);
 
         // 進捗ウィンドウを作成
         form = new ProgressForm(service, settings, targetFolder);
